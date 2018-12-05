@@ -1,0 +1,7 @@
+{
+  "dev": {
+    "PORT": 10010,
+    "MONGODB_URI": "mongodb://localhost:27017/userlist",
+    "SECRETKEY": "PUTYOURSECRETHERE"
+  }
+}

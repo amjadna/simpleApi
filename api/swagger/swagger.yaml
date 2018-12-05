@@ -1,0 +1,250 @@
+swagger: "2.0"
+info:
+  version: "0.0.1"
+  title: SimpleAPI
+# during dev, should point to your local machine
+host: localhost:10010
+# basePath prefixes all resource paths
+basePath: /
+#
+schemes:
+  # tip: remove http to make production-grade
+  - http
+  - https
+# format of bodies a client can send (Content-Type)
+consumes:
+  - application/json
+# format of the responses to the client (Accepts)
+produces:
+  - application/json
+securityDefinitions:
+  auth:
+    type: apiKey
+    name: auth
+    in: query
+
+paths:
+  /user:
+    # binds a127 app logic to a route
+    x-swagger-router-controller: user
+    get:
+      tags:
+        - User
+      description: get a users list
+      # used as the method name of the controller
+      operationId: index
+      parameters:
+       - $ref: "#/parameters/accessTokenHeader"
+      security:
+        - auth: []
+      responses:
+        "401":
+          description: UnauthorizedError
+          schema:
+            $ref: '#/definitions/UnauthorizedError'
+        "200":
+          description: Success
+          schema:
+            # a pointer to a definition
+            $ref: "#/definitions/GetUserListResponse"
+        # responses may fall through to errors
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    post:
+      tags:
+        - User
+      description: add a new user to the list
+      operationId: create
+      parameters:
+        - name: user
+          in: body
+          required: true
+          description: New User details to add
+          schema:
+            $ref:  "#/definitions/UserBody"
+      responses:
+        "200":
+          description: Successfully saved new User
+          schema:
+            $ref: "#/definitions/UserResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+            
+  /login:
+    # binds a127 app logic to a route
+    x-swagger-router-controller: user
+    post:
+      tags:
+        - Login
+      description: add a new user to the list
+      operationId: login
+      parameters:
+        - name: login
+          in: body
+          required: true
+          description: Login credentials
+          schema:
+            $ref:  "#/definitions/LoginBody"
+      responses:
+        "200":
+          description: Successfully saved new User
+          schema:
+            $ref: "#/definitions/LoginResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+  /user/{userId}:
+    # binds a127 app logic to a route
+    x-swagger-router-controller: user
+    get:
+      tags:
+        - User
+      description: get a user
+      # used as the method name of the controller
+      operationId: get
+      parameters:
+       - $ref: "#/parameters/accessTokenHeader"
+       - $ref: "#/parameters/userId"
+      security:
+        - auth: []
+      responses:
+        "401":
+          description: UnauthorizedError
+          schema:
+            $ref: '#/definitions/UnauthorizedError'
+        "200":
+          description: Success
+          schema:
+            # a pointer to a definition
+            $ref: "#/definitions/UserResponse"
+        # responses may fall through to errors
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+            
+    delete:
+      tags:
+        - User
+      description: delete a user
+      # used as the method name of the controller
+      operationId: delete
+      parameters:
+       - $ref: "#/parameters/accessTokenHeader"
+       - $ref: "#/parameters/userId"
+      security:
+        - auth: []
+      responses:
+        "401":
+          description: UnauthorizedError
+          schema:
+            $ref: '#/definitions/UnauthorizedError'
+        "200":
+          description: Success
+          schema:
+            # a pointer to a definition
+            $ref: "#/definitions/DeleteUserResponse"
+        # responses may fall through to errors
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+            
+  /swagger:
+    x-swagger-pipe: swagger_raw
+# complex objects have schema definitions
+definitions:
+
+  GetUserListResponse:
+    required:
+      - users
+    properties:
+      users:
+        type: array
+        items:
+          $ref: "#/definitions/UserResponse"
+
+  User:
+    required:
+      - email
+      - password
+    properties:
+      email:
+        type: string
+        description: User email
+      password:
+        type: string
+        description: password
+
+  UserResponse:
+    properties:
+      email:
+        type: string
+        description: User email
+      _id:
+        type: string
+        description: id
+
+  LoginResponse:
+    properties:
+      auth:
+        type: string
+        description: authentication code
+  
+  DeleteUserResponse:
+    required:
+      - message
+    properties:
+      message:
+        type: string 
+        
+  UserBody:
+    required:
+      - user
+    properties:
+      user:
+        $ref:  "#/definitions/User"
+        
+  LoginBody:
+    required:
+      - email
+      - password
+    properties:
+      email:
+        type: string
+        description: User email
+      password:
+        type: string
+        description: password
+
+  ErrorResponse:
+    required:
+      - message
+    properties:
+      message:
+        type: string
+
+  UnauthorizedError:
+    description: Access token is missing or invalid
+
+parameters:
+  # Authorization params
+  accessTokenHeader:
+    name: auth
+    in: header
+    description: Authorization header containing the json web token
+    type: string
+  
+  # User Id param
+  userId:
+    name: userId
+    in: path
+    description: User Id
+    required: true
+    type: string
